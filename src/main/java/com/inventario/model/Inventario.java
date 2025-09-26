@@ -50,6 +50,17 @@ public class Inventario {
         return updated;
     }
 
+    public Producto deleteProducto(String sku) {
+        if (sku == null) throw new IllegalArgumentException("SKU es obligatorio");
+        sku = sku.trim();
+        if (sku.isEmpty()) throw new IllegalArgumentException("SKU es obligatorio");
+        if (!sku.matches("\\d+")) throw new IllegalArgumentException("SKU debe contener solo dígitos (0-9)");
+
+        Producto removed = data.remove(sku);
+        if (removed == null) throw new IllegalArgumentException("No existe el SKU: " + sku);
+        return removed;
+    }
+
     public Producto findBySku(String sku) { return data.get(sku); }
 
     public int contar() { return data.size(); }

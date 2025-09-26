@@ -32,7 +32,8 @@ public class Aplicacion {
         String command = args[0];
         if ("register".equalsIgnoreCase(command)) {
             String sku = null, name = null;
-            Double price = null; Integer qty = null;
+            Double price = null;
+            Integer qty = null;
 
             for (int i = 1; i < args.length; i++) {
                 switch (args[i]) {
@@ -46,10 +47,10 @@ public class Aplicacion {
                         price = Double.valueOf(nextArg(args, ++i, "--price"));
                         break;
                     case "--qty":
-                        qty   = Integer.valueOf(nextArg(args, ++i, "--qty"));
+                        qty = Integer.valueOf(nextArg(args, ++i, "--qty"));
                         break;
                     default:
-                    return;
+                        return;
                 }
             }
             try {
@@ -66,17 +67,19 @@ public class Aplicacion {
 
         // actualizar cantidad
         if ("update-qty".equalsIgnoreCase(command)) {
-            String sku = null; Integer qty = null;
+            String sku = null;
+            Integer qty = null;
             for (int i = 1; i < args.length; i++) {
                 switch (args[i]) {
                     case "--sku":
                         sku = nextArg(args, ++i, "--sku");
                         break;
                     case "--qty":
-                        qty  = Integer.valueOf(nextArg(args, ++i, "--qty"));
+                        qty = Integer.valueOf(nextArg(args, ++i, "--qty"));
                         break;
-                    default: System.out.println("Flag desconocido: " + args[i]);
-                    return;
+                    default:
+                        System.out.println("Flag desconocido: " + args[i]);
+                        return;
                 }
             }
             try {
@@ -89,12 +92,34 @@ public class Aplicacion {
             }
             return;
         }
+        if ("delete".equalsIgnoreCase(command)) {
+            String sku = null;
+            for (int i = 1; i < args.length; i++) {
+                switch (args[i]) {
+                    case "--sku":
+                        sku = nextArg(args, ++i, "--sku");
+                        break;
+                    default:
+                        System.out.println("Flag desconocido: " + args[i]);
+                        return;
+                }
+            }
+            try {
+                Producto removed = inv.deleteProducto(sku);
+                Storage.saveAll(STORE_FILE, inv); // persistir cambios
+                System.out.println("Eliminado: " + removed);
+                System.out.println("Total en inventario: " + inv.contar());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Error: " + e.getMessage());
+                System.exit(1);
+            }
+
+        }
     }
 
-    private static String nextArg(String[] args, int index, String flag) {
-        if (index >= args.length) throw new IllegalArgumentException("Falta valor para " + flag);
-        return args[index];
-    }
-
+        private static String nextArg (String[]args,int index, String flag){
+            if (index >= args.length) throw new IllegalArgumentException("Falta valor para " + flag);
+            return args[index];
+        }
 
 }

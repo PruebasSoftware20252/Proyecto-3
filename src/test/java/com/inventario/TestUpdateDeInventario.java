@@ -10,22 +10,22 @@ public class TestUpdateDeInventario {
     @Test
     void actualizarCantidad_ok() {
         Inventario inv = new Inventario();
-        inv.addProducto("P001", "Lapiz", 1.2, 100);
+        inv.addProducto("0001", "Lapiz", 1.2, 100);
 
-        Producto updated = inv.updateCantidad("P001", 250);
+        Producto updated = inv.updateCantidad("0001", 250);
 
         assertEquals(250, updated.getCantidad());
         assertEquals("Lapiz", updated.getNombre());
         assertEquals(1.2, updated.getPrecio(), 1e-9);
         assertEquals(1, inv.contar());
-        assertEquals(250, inv.findBySku("P001").getCantidad());
+        assertEquals(250, inv.findBySku("0001").getCantidad());
     }
 
     @Test
     void actualizarCantidad_negativa_lanza() {
         Inventario inv = new Inventario();
-        inv.addProducto("P001", "Lapiz", 1.2, 100);
-        assertThrows(IllegalArgumentException.class, () -> inv.updateCantidad("P001", -5));
+        inv.addProducto("0001", "Lapiz", 1.2, 100);
+        assertThrows(IllegalArgumentException.class, () -> inv.updateCantidad("0001", -5));
     }
 
     @Test
