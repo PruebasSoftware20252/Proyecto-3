@@ -54,4 +54,23 @@ public class Storage {
             System.err.println("No se pudo escribir el archivo: " + e.getMessage());
         }
     }
+
+    public static void saveAll(Path file, Inventario inv) {
+        try {
+            Path parent = file.getParent();
+            if (parent != null) Files.createDirectories(parent);
+
+            try (BufferedWriter bw = Files.newBufferedWriter(
+                    file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING)) {
+                for (Producto p : inv.all()) {
+                    String line = String.format("%s;%s;%s;%s",
+                            p.getSku(), p.getNombre(), Double.toString(p.getPrecio()), Integer.toString(p.getCantidad()));
+                    bw.write(line);
+                    bw.newLine();
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("No se pudo escribir el archivo: " + e.getMessage());
+        }
+    }
 }

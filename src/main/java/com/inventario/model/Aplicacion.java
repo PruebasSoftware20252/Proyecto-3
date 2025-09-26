@@ -30,34 +30,64 @@ public class Aplicacion {
         }
 
         String command = args[0];
-        if (!"register".equalsIgnoreCase(command)) {
-            System.out.println("Comando no reconocido: " + command);
+        if ("register".equalsIgnoreCase(command)) {
+            String sku = null, name = null;
+            Double price = null; Integer qty = null;
+
+            for (int i = 1; i < args.length; i++) {
+                switch (args[i]) {
+                    case "--sku":
+                        sku = nextArg(args, ++i, "--sku");
+                        break;
+                    case "--name":
+                        name = nextArg(args, ++i, "--name");
+                        break;
+                    case "--price":
+                        price = Double.valueOf(nextArg(args, ++i, "--price"));
+                        break;
+                    case "--qty":
+                        qty   = Integer.valueOf(nextArg(args, ++i, "--qty"));
+                        break;
+                    default:
+                    return;
+                }
+            }
+            try {
+                Producto p = inv.addProducto(sku, name, price != null ? price : -1, qty != null ? qty : -1);
+                Storage.append(STORE_FILE, p);
+                System.out.println("Registrado: " + p);
+                System.out.println("Total en inventario: " + inv.contar());
+            } catch (IllegalArgumentException e) {
+                System.err.println("Error: " + e.getMessage());
+                System.exit(1);
+            }
             return;
         }
 
-        String sku = null, name = null;
-        Double price = null;
-        Integer qty = null;
-
-        for (int i = 1; i < args.length; i++) {
-            switch (args[i]) {
-                case "--sku":   sku = nextArg(args, ++i, "--sku"); break;
-                case "--name":  name = nextArg(args, ++i, "--name"); break;
-                case "--price": price = Double.valueOf(nextArg(args, ++i, "--price")); break;
-                case "--qty":   qty   = Integer.valueOf(nextArg(args, ++i, "--qty")); break;
-                default:
+        // actualizar cantidad
+        if ("update-qty".equalsIgnoreCase(command)) {
+            String sku = null; Integer qty = null;
+            for (int i = 1; i < args.length; i++) {
+                switch (args[i]) {
+                    case "--sku":
+                        sku = nextArg(args, ++i, "--sku");
+                        break;
+                    case "--qty":
+                        qty  = Integer.valueOf(nextArg(args, ++i, "--qty"));
+                        break;
+                    default: System.out.println("Flag desconocido: " + args[i]);
                     return;
+                }
             }
-        }
-
-        try {
-            Producto p = inv.addProducto(sku, name, price != null ? price : -1, qty != null ? qty : -1);
-            Storage.append(STORE_FILE, p);
-            System.out.println("Registrado: " + p);
-            System.out.println("Total en inventario: " + inv.contar());
-        } catch (IllegalArgumentException e) {
-            System.err.println("Error: " + e.getMessage());
-            System.exit(1);
+            try {
+                Producto updated = inv.updateCantidad(sku, qty != null ? qty : -1);
+                Storage.saveAll(STORE_FILE, inv); // sobreescribe CSV con el inventario actualizado
+                System.out.println("Cantidad actualizada: " + updated);
+            } catch (IllegalArgumentException e) {
+                System.err.println("Error: " + e.getMessage());
+                System.exit(1);
+            }
+            return;
         }
     }
 
@@ -65,4 +95,6 @@ public class Aplicacion {
         if (index >= args.length) throw new IllegalArgumentException("Falta valor para " + flag);
         return args[index];
     }
+
+
 }

@@ -1,5 +1,6 @@
 package com.inventario.model;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,7 +29,21 @@ public class Inventario {
         return p;
     }
 
+
+    public Producto updateCantidad(String sku, int newQuantity) {
+        if (sku == null || sku.trim().isEmpty()) throw new IllegalArgumentException("SKU es obligatorio");
+        if (newQuantity < 0) throw new IllegalArgumentException("La cantidad no puede ser negativa");
+        Producto existing = data.get(sku);
+        if (existing == null) throw new IllegalArgumentException("No existe el SKU: " + sku);
+
+        Producto updated = new Producto(existing.getSku(), existing.getNombre(), existing.getPrecio(), newQuantity);
+        data.put(updated.getSku(), updated);
+        return updated;
+    }
+
     public Producto findBySku(String sku) { return data.get(sku); }
 
     public int contar() { return data.size(); }
+
+    public Collection<Producto> all() { return data.values(); }
 }
