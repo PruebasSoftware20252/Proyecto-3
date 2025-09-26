@@ -8,8 +8,17 @@ public class Inventario {
     private final Map<String, Producto> data = new HashMap<>();
 
     public Producto addProducto(String sku, String nombre, double precio, int cantidad) {
-        if (sku == null || sku.trim().isEmpty()) {
+        if (sku == null) {
+        throw new IllegalArgumentException("SKU es obligatorio");
+        }
+        sku = sku.trim();
+
+        if (sku.isEmpty()) {
             throw new IllegalArgumentException("SKU es obligatorio");
+        }
+
+        if (!sku.matches("\\d+")) {
+            throw new IllegalArgumentException("SKU debe contener solo dígitos (0-9)");
         }
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("Nombre es obligatorio");
