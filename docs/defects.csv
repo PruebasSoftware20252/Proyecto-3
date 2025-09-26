@@ -1,2 +1,2 @@
 id,pr,archivo,linea,tipo,severidad,descripcion,estado,reportado_por,decidido_por,comentarios 
-DEF-001,#1,src/main/java/com/inventario/model/Inventario.java,11,funcional,media,"Acepta SKU alfanumerico, debe ser solo numerico",ACEPTADO,cliente,Lina Rodriguez,"Se requiere solucion asap, se crea el issue numero 4 para corregir"
+DEF-001,#1,src/main/java/com/inventario/model/Inventario.java,11,funcional,media,"Acepta SKU alfanumerico, debe ser solo numerico",ACEPTADO,cliente,Lina Rodriguez,"Se requiere solucion asap, se crea el issue numero 5 para corregir"
