@@ -9,20 +9,20 @@ public class TestDeInventario {
     @Test
     void registrarProducto_valido_incrementaConteo() {
         Inventario inv = new Inventario();
-        Producto p = inv.addProducto("P001", "Lapiz", 1.2, 100);
+        Producto p = inv.addProducto("0001", "Lapiz", 1.2, 100);
 
         assertNotNull(p);
         assertEquals(1, inv.contar());
-        assertEquals("P001", inv.findBySku("P001").getSku());
+        assertEquals("0001", inv.findBySku("0001").getSku());
     }
 
     @Test
     void registrarProducto_duplicado_lanzaExcepcion() {
         Inventario inv = new Inventario();
-        inv.addProducto("P001", "Lapiz", 1.2, 100);
+        inv.addProducto("0001", "Lapiz", 1.2, 100);
 
         IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
-                () -> inv.addProducto("P001", "Otro", 2.0, 10));
+                () -> inv.addProducto("0001", "Otro", 2.0, 10));
 
         assertTrue(ex.getMessage().toLowerCase().contains("sku"));
     }
