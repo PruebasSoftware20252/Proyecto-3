@@ -1,0 +1,59 @@
+name: CI/CD Java + SonarCloud + Azure
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+  JAVA_VERSION: '17'
+  SONAR_HOST_URL: 'https://sonarcloud.io'
+
+jobs:
+  build_test_and_sonar:
+    name: Build, JUnit & SonarCloud
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+      - name: Build + Tests + Coverage + Sonar (Maven)
+        run: >
+          mvn -B -ntp clean verify jacoco:report
+          org.sonarsource.scanner.maven:sonar-maven-plugin:sonar
+          -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
+          -Dsonar.projectKey=<TU_PROJECT_KEY>
+          -Dsonar.organization=<TU_ORG>
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+  deploy:
+    name: Deploy to Azure App Service
+    needs: build_test_and_sonar
+    runs-on: ubuntu-latest
+    if: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'maven'
+      - name: Build artifact
+        run: mvn -B -ntp -DskipTests package
+      - name: Deploy JAR
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: target/*.jar
