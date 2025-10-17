@@ -3,27 +3,18 @@ plugins {
     id 'application'
 }
 
-group = 'com.example'
-version = '1.0-SNAPSHOT'
+group = 'com.inventario'
+version = '1.0.0'
 
 repositories { mavenCentral() }
 
 java {
-    // Si tu CI usa Java 17 (recomendado). Cámbialo a 11 si lo necesitas.
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
-    testRuntimeOnly  'org.junit.jupiter:junit-jupiter-engine:5.7.2'
-}
-
-test {
+tasks.withType(Test) {
     useJUnitPlatform()
-
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat "full"
@@ -32,5 +23,12 @@ test {
 }
 
 application {
-    mainClass = 'com.example.app.App'
+    // Arranque del servidor HTTP embebido
+    mainClass = 'com.inventario.web.WebServer'
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': application.mainClass
+    }
 }
