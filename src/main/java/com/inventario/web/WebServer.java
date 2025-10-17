@@ -108,7 +108,7 @@ public class WebServer {
             int cantidad = Integer.parseInt(required(form, "cantidad"));
 
             inv.addProducto(sku, nombre, precio, cantidad);
-            Storage.save(inv, STORE_FILE);
+            Storage.saveAll(STORE_FILE, inv);
             redirect(ex, "/");
         } catch (Exception e) {
             send(ex, 400, "Error: " + e.getMessage());
@@ -129,7 +129,7 @@ public class WebServer {
             // Si el nombre difiere, ajusta aquí.
             inv.updateCantidad(sku, cantidad);
 
-            Storage.save(inv, STORE_FILE);
+            Storage.saveAll(STORE_FILE, inv);
             redirect(ex, "/");
         } catch (Exception e) {
             send(ex, 400, "Error: " + e.getMessage());
