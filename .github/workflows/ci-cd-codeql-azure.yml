@@ -56,8 +56,24 @@ jobs:
 
   deploy:
     name: Deploy to Azure App Service
-    uses: azure/webapps-deploy@v3
-    with:
-      app-name: ${{ env.AZURE_WEBAPP_NAME }}
-      publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-      package: build/libs/*.jar
+    needs: [build_test, codeql]
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: 'gradle'
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+      - name: Package (Gradle)
+        run: ./gradlew clean jar --no-daemon
+      - name: Deploy JAR to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}     # o pon aquí CP-TAREA-5 literal
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: build/libs/*.jar
