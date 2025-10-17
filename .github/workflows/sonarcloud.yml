@@ -41,12 +41,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./gradlew clean test jacocoTestReport sonar \
-            -Dsonar.organization=pruebassoftware20252 \
-            -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3 \ 
-            -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
-            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+          ./gradlew clean test jacocoTestReport sonar -Dsonar.organization=pruebassoftware20252 -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3 -Dsonar.host.url=${{ env.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
 
   deploy:
     name: Deploy to Azure App Service
