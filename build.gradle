@@ -68,3 +68,9 @@ jar {
         attributes 'Main-Class': application.mainClass
     }
 }
+
+sonarqube {
+    properties {
+        property "sonar.gradle.skipCompile", "true"
+    }
+}
