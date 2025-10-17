@@ -40,8 +40,8 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           ./gradlew clean test jacocoTestReport sonarqube \
-            -Dsonar.projectKey=<TU_PROJECT_KEY> \
-            -Dsonar.organization=<TU_ORG> \
+            -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3 \
+            -Dsonar.organization=pruebassoftware20252 \
             -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
