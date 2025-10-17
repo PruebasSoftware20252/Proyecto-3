@@ -13,7 +13,7 @@ permissions:
 
 env:
   JAVA_VERSION: '17'
-  AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+  AZURE_WEBAPP_NAME: CP-TAREA-5   # Puedes dejar el literal para evitar confusiones
 
 jobs:
   build_test:
@@ -21,14 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+          cache: gradle
+      - run: chmod +x gradlew
       - name: Build & Test
         run: ./gradlew clean build --no-daemon
 
@@ -38,19 +36,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+          cache: gradle
+      - uses: github/codeql-action/init@v4
         with:
           languages: java
           build-mode: autobuild
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+      - uses: github/codeql-action/analyze@v4
         with:
           category: "/language:java"
 
@@ -61,19 +56,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
-      - name: Make gradlew executable
-        run: chmod +x gradlew
+          cache: gradle
+      - run: chmod +x gradlew
       - name: Package (Gradle)
         run: ./gradlew clean jar --no-daemon
+      - name: Show target & artifact
+        run: |
+          echo "App name: ${{ env.AZURE_WEBAPP_NAME }}"
+          ls -lh build/libs/
       - name: Deploy JAR to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}     # o pon aquí CP-TAREA-5 literal
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: build/libs/*.jar
