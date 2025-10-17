@@ -13,12 +13,13 @@ permissions:
 env:
   JAVA_VERSION: '17'
   SONAR_HOST_URL: 'https://sonarcloud.io'
-  AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+  AZURE_WEBAPP_NAME: CP-TAREA-5
 
 jobs:
   build_test_and_sonar:
     name: Build, Test & SonarCloud (Gradle)
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,17 +40,20 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          ./gradlew clean test jacocoTestReport sonarqube \
-            -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3 \
+          ./gradlew clean test jacocoTestReport sonar \
             -Dsonar.organization=pruebassoftware20252 \
+            -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3 \
             -Dsonar.host.url=${{ env.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }} \
+            -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml \
+            -Dsonar.gradle.skipCompile=true
 
   deploy:
     name: Deploy to Azure App Service
     needs: build_test_and_sonar
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,6 +70,11 @@ jobs:
 
       - name: Package JAR
         run: ./gradlew clean jar --no-daemon
+
+      - name: Show artifact before deploy
+        run: |
+          echo "Deploying to: ${{ env.AZURE_WEBAPP_NAME }}"
+          ls -lh build/libs/
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
