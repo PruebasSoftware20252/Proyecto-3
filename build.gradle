@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id "com.microsoft.azure.azurewebapp" version "1.10.0"
 }
 
 group = 'com.inventario'
