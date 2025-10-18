@@ -62,33 +62,20 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Package JAR
-        run: ./gradlew clean jar --no-daemon
+      - name: Build and Package JAR
+        run: ./gradlew clean build -x test --no-daemon
 
-      - name: Show artifact before deploy
+      - name: Copy JAR to root for deploy
         run: |
-          echo "Deploying to: ${{ env.AZURE_WEBAPP_NAME }}"
-          ls -lh build/libs/
+          mkdir -p deploy
+          cp build/libs/*.jar deploy/
 
-      - name: Prepare ZIP for ZipDeploy
-        run: |
-          rm -f app.zip
-          zip -j app.zip build/libs/*.jar
+      - name: Show files to deploy
+        run: ls -lh deploy/
 
-      - name: Extract Kudu credentials from publish profile
-        shell: bash
-        run: |
-          xml='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
-          KUDU_URL=$(echo "$xml" | sed -n 's/.*publishUrl="\([^"]*\)".*/\1/p' | head -n1)
-          KUDU_USER=$(echo "$xml" | sed -n 's/.*userName="\([^"]*\)".*/\1/p' | head -n1)
-          KUDU_PASS=$(echo "$xml" | sed -n 's/.*userPWD="\([^"]*\)".*/\1/p' | head -n1)
-          echo "KUDU_URL=$KUDU_URL" >> $GITHUB_ENV
-          echo "KUDU_USER=$KUDU_USER" >> $GITHUB_ENV
-          echo "KUDU_PASS=$KUDU_PASS" >> $GITHUB_ENV
-
-      - name: ZipDeploy to Kudu
-        run: |
-          curl -sS -u "${KUDU_USER}:${KUDU_PASS}" \
-            -H "Content-Type: application/zip" \
-            --data-binary @app.zip \
-            https://${KUDU_URL}/api/zipdeploy
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: CP-TAREA-5
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: deploy/
