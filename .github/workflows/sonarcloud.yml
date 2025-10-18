@@ -22,7 +22,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -37,7 +38,7 @@ jobs:
       - name: Build & Test + Coverage
         run: ./gradlew clean test jacocoTestReport --no-daemon
 
-      - name: SonarCloud (Gradle sonar)
+      - name: SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
@@ -59,67 +60,33 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: ${{ env.JAVA_VERSION }}
-          cache: gradle
-
-      - name: Make gradlew executable
-        run: chmod +x gradlew
-
-      # Construye el JAR (sin tests en esta fase para ir más rápido)
       - name: Build JAR
         run: ./gradlew clean build -x test --no-daemon
 
-      # Copia solo el/los JAR(es) a una carpeta de deploy y lista lo copiado
-      - name: Copy JAR to deploy directory
+      - name: Prepare deployment package
         run: |
           mkdir -p deploy
-          cp build/libs/*.jar deploy/ || (echo "No JAR in build/libs" && exit 1)
-          echo "Contenido de deploy/:"
-          ls -lh deploy/
-
-      # Empaqueta en app.zip y muestra su tamaño
-      - name: Create zip
-        run: |
+          cp build/libs/*.jar deploy/
           cd deploy
-          zip -r ../app.zip . >/dev/null
+          zip -r ../app.zip .
           cd ..
-          echo "ZIP creado:"
           ls -lh app.zip
 
-      # Extrae credenciales del publish profile y muestra a qué host va a subir
-      - name: Extract Kudu credentials from publish profile
+      - name: Extract Kudu credentials
         shell: bash
         run: |
-          set -e
           xml='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
           echo "$xml" > profile.xml
-          # Toma la primera publishProfile (normalmente MSDeploy o ZipDeploy; ambas apuntan al host Kudu scm)
           KUDU_URL=$(grep -oP '(?<=publishUrl=")[^"]*' profile.xml | head -n1)
           KUDU_USER=$(grep -oP '(?<=userName=")[^"]*' profile.xml | head -n1)
           KUDU_PASS=$(grep -oP '(?<=userPWD=")[^"]*' profile.xml | head -n1)
-          if [[ -z "$KUDU_URL" || -z "$KUDU_USER" || -z "$KUDU_PASS" ]]; then
-            echo "No pude extraer KUDU_URL / KUDU_USER / KUDU_PASS del publish profile"
-            exit 1
-          fi
-          echo "Host Kudu: https://${KUDU_URL} (usuario oculto)"
           echo "KUDU_URL=$KUDU_URL" >> $GITHUB_ENV
           echo "KUDU_USER=$KUDU_USER" >> $GITHUB_ENV
           echo "KUDU_PASS=$KUDU_PASS" >> $GITHUB_ENV
 
-      # ZipDeploy con salida verbose y falla dura si algo sale mal
-      - name: ZipDeploy to Kudu
+      - name: ZipDeploy to Azure
         run: |
-          set -e
-          echo "Subiendo app.zip a https://${KUDU_URL}/api/zipdeploy ..."
-          http_code=$(curl -sS -w "%{http_code}" -o /tmp/resp.txt \
-            -u "${KUDU_USER}:${KUDU_PASS}" \
+          curl -sS -u "${KUDU_USER}:${KUDU_PASS}" \
             -H "Content-Type: application/zip" \
             --data-binary @app.zip \
-            https://${KUDU_URL}/api/zipdeploy)
-          echo "Respuesta (${http_code}):"
-          cat /tmp/resp.txt || true
-          [[ "$http_code" == "200" || "$http_code" == "202" || "$http_code" == "204" ]] || exit 1
+            https://${KUDU_URL}/api/zipdeploy
