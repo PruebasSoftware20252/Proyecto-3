@@ -44,7 +44,7 @@ jobs:
           ./gradlew sonar
           -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
           -Dsonar.organization=pruebassoftware20252
-          -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3
+          -Dsonar.projectKey=pruebassoftware20252
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
           -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
           -Dsonar.gradle.skipCompile=true
