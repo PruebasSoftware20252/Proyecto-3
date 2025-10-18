@@ -17,14 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
-/**
- * Web UI mínima para Inventario:
- *  - GET /         : lista los productos y muestra formularios para agregar/actualizar
- *  - POST /add     : agrega producto (sku, nombre, precio, cantidad)
- *  - POST /update  : actualiza cantidad (sku, cantidad)
- *
- * Persiste en data/inventory.csv usando Storage.
- */
+
 public class WebServer {
     private static final Path STORE_FILE = Paths.get("data", "inventory.csv");
     private static Inventario inv;
