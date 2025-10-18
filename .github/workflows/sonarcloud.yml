@@ -1,4 +1,4 @@
-name: CI/CD Gradle + SonarCloud + Azure
+name: CI/CD Gradle + SonarCloud + Azure (ZipDeploy)
 
 on:
   push:
@@ -13,41 +13,48 @@ permissions:
 env:
   JAVA_VERSION: '17'
   SONAR_HOST_URL: 'https://sonarcloud.io'
-  AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }} 
+  AZURE_WEBAPP_NAME: CP-TAREA-5
 
 jobs:
   build_test_and_sonar:
     name: Build, Test & SonarCloud (Gradle)
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
 
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
+          cache: gradle
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build & Test + Coverage + Sonar
+      - name: Build & Test + Coverage
+        run: ./gradlew clean test jacocoTestReport --no-daemon
+
+      - name: SonarCloud (Gradle sonar)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          ./gradlew clean test jacocoTestReport sonar -Dsonar.organization=pruebassoftware20252 -Dsonar.projectKey=pruebassoftware20252 -Dsonar.host.url=${{ env.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }} -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+        run: >
+          ./gradlew sonar
+          -Dsonar.host.url=${{ env.SONAR_HOST_URL }}
+          -Dsonar.organization=pruebassoftware20252
+          -Dsonar.projectKey=PruebasSoftware20252_Proyecto-3
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
+          -Dsonar.gradle.skipCompile=true
+          --no-daemon
 
   deploy:
-    name: Deploy to Azure App Service
+    name: Deploy to Azure App Service (ZipDeploy)
     needs: build_test_and_sonar
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,27 +62,48 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: ${{ env.JAVA_VERSION }}
-          cache: 'gradle'
+          cache: gradle
 
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Build and Package JAR
+      # Empaquetar el JAR
+      - name: Build JAR
         run: ./gradlew clean build -x test --no-daemon
 
-      - name: Copy JAR to root for deploy
+      # Preparar carpeta de deploy con SOLO el jar
+      - name: Copy JAR to deploy directory
         run: |
           mkdir -p deploy
           cp build/libs/*.jar deploy/
+          ls -lh deploy/
 
-      - name: Show files to deploy
-        run: ls -lh deploy/
+      # Crear un ZIP para ZipDeploy
+      - name: Create zip
+        run: |
+          cd deploy
+          zip -r ../app.zip .
+          cd ..
+          ls -lh app.zip
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: CP-TAREA-5
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: deploy/
+      # Extraer credenciales Kudu del publish profile (XML)
+      - name: Extract Kudu credentials from publish profile
+        shell: bash
+        run: |
+          xml='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
+          KUDU_URL=$(echo "$xml" | sed -n 's/.*publishUrl="\([^"]*\)".*/\1/p' | head -n1)
+          KUDU_USER=$(echo "$xml" | sed -n 's/.*userName="\([^"]*\)".*/\1/p' | head -n1)
+          KUDU_PASS=$(echo "$xml" | sed -n 's/.*userPWD="\([^"]*\)".*/\1/p' | head -n1)
+          echo "KUDU_URL=$KUDU_URL" >> $GITHUB_ENV
+          echo "KUDU_USER=$KUDU_USER" >> $GITHUB_ENV
+          echo "KUDU_PASS=$KUDU_PASS" >> $GITHUB_ENV
+
+      # ZipDeploy directo (sin app-name ni slot)
+      - name: ZipDeploy to Kudu
+        run: |
+          curl -sS -u "${KUDU_USER}:${KUDU_PASS}" \
+            -H "Content-Type: application/zip" \
+            --data-binary @app.zip \
+            https://${KUDU_URL}/api/zipdeploy
