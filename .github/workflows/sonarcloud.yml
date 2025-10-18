@@ -69,40 +69,57 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      # Empaquetar el JAR
+      # Construye el JAR (sin tests en esta fase para ir más rápido)
       - name: Build JAR
         run: ./gradlew clean build -x test --no-daemon
 
-      # Preparar carpeta de deploy con SOLO el jar
+      # Copia solo el/los JAR(es) a una carpeta de deploy y lista lo copiado
       - name: Copy JAR to deploy directory
         run: |
           mkdir -p deploy
-          cp build/libs/*.jar deploy/
+          cp build/libs/*.jar deploy/ || (echo "No JAR in build/libs" && exit 1)
+          echo "Contenido de deploy/:"
           ls -lh deploy/
 
-      # Crear un ZIP para ZipDeploy
+      # Empaqueta en app.zip y muestra su tamaño
       - name: Create zip
         run: |
           cd deploy
-          zip -r ../app.zip .
+          zip -r ../app.zip . >/dev/null
           cd ..
+          echo "ZIP creado:"
           ls -lh app.zip
 
-      # Extraer credenciales Kudu del publish profile (XML)
+      # Extrae credenciales del publish profile y muestra a qué host va a subir
       - name: Extract Kudu credentials from publish profile
         shell: bash
         run: |
+          set -e
           xml='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
-          KUDU_URL=$(echo "$xml" | sed -n 's/.*publishUrl="\([^"]*\)".*/\1/p' | head -n1)
-          KUDU_USER=$(echo "$xml" | sed -n 's/.*userName="\([^"]*\)".*/\1/p' | head -n1)
-          KUDU_PASS=$(echo "$xml" | sed -n 's/.*userPWD="\([^"]*\)".*/\1/p' | head -n1)
+          echo "$xml" > profile.xml
+          # Toma la primera publishProfile (normalmente MSDeploy o ZipDeploy; ambas apuntan al host Kudu scm)
+          KUDU_URL=$(grep -oP '(?<=publishUrl=")[^"]*' profile.xml | head -n1)
+          KUDU_USER=$(grep -oP '(?<=userName=")[^"]*' profile.xml | head -n1)
+          KUDU_PASS=$(grep -oP '(?<=userPWD=")[^"]*' profile.xml | head -n1)
+          if [[ -z "$KUDU_URL" || -z "$KUDU_USER" || -z "$KUDU_PASS" ]]; then
+            echo "No pude extraer KUDU_URL / KUDU_USER / KUDU_PASS del publish profile"
+            exit 1
+          fi
+          echo "Host Kudu: https://${KUDU_URL} (usuario oculto)"
           echo "KUDU_URL=$KUDU_URL" >> $GITHUB_ENV
           echo "KUDU_USER=$KUDU_USER" >> $GITHUB_ENV
           echo "KUDU_PASS=$KUDU_PASS" >> $GITHUB_ENV
 
+      # ZipDeploy con salida verbose y falla dura si algo sale mal
       - name: ZipDeploy to Kudu
         run: |
-          curl -sS -u "${KUDU_USER}:${KUDU_PASS}" \
+          set -e
+          echo "Subiendo app.zip a https://${KUDU_URL}/api/zipdeploy ..."
+          http_code=$(curl -sS -w "%{http_code}" -o /tmp/resp.txt \
+            -u "${KUDU_USER}:${KUDU_PASS}" \
             -H "Content-Type: application/zip" \
             --data-binary @app.zip \
-            https://${KUDU_URL}/api/zipdeploy
+            https://${KUDU_URL}/api/zipdeploy)
+          echo "Respuesta (${http_code}):"
+          cat /tmp/resp.txt || true
+          [[ "$http_code" == "200" || "$http_code" == "202" || "$http_code" == "204" ]] || exit 1
