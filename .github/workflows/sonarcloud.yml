@@ -100,7 +100,6 @@ jobs:
           echo "KUDU_USER=$KUDU_USER" >> $GITHUB_ENV
           echo "KUDU_PASS=$KUDU_PASS" >> $GITHUB_ENV
 
-      # ZipDeploy directo (sin app-name ni slot)
       - name: ZipDeploy to Kudu
         run: |
           curl -sS -u "${KUDU_USER}:${KUDU_PASS}" \
