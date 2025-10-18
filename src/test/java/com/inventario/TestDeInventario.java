@@ -9,7 +9,7 @@ public class TestDeInventario {
     @Test
     void registrarProducto_valido_incrementaConteo() {
         Inventario inv = new Inventario();
-        Producto p = inv.addProducto("P0001", "Lapiz", 1.2, 100);
+        Producto p = inv.addProducto("00001", "Lapiz", 1.2, 100);
 
         assertNotNull(p);
         assertEquals(1, inv.contar());
