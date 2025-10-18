@@ -1,4 +1,4 @@
-name: CI/CD Gradle + SonarCloud + Azure
+name: CI/CD Gradle + SonarCloud + Azure (ZipDeploy)
 
 on:
   push:
@@ -22,8 +22,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+        with: { fetch-depth: 0 }
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -38,7 +37,7 @@ jobs:
       - name: Build & Test + Coverage
         run: ./gradlew clean test jacocoTestReport --no-daemon
 
-      - name: SonarCloud Analysis
+      - name: SonarCloud (Gradle sonar)
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: >
@@ -50,7 +49,6 @@ jobs:
           -Dsonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
           -Dsonar.gradle.skipCompile=true
           --no-daemon
-
   deploy:
     name: Deploy to Azure App Service (ZipDeploy)
     needs: build_test_and_sonar
@@ -60,31 +58,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      # Empaquetar el JAR
       - name: Build JAR
         run: ./gradlew clean build -x test --no-daemon
 
-      - name: Prepare deployment package
+      # Preparar carpeta de deploy con SOLO el jar
+      - name: Copy JAR to deploy directory
         run: |
           mkdir -p deploy
           cp build/libs/*.jar deploy/
+          ls -lh deploy/
+      # Crear un ZIP para ZipDeploy
+      - name: Create zip
+        run: |
           cd deploy
           zip -r ../app.zip .
           cd ..
           ls -lh app.zip
-
-      - name: Extract Kudu credentials
+      # Extraer credenciales Kudu del publish profile (XML)
+      - name: Extract Kudu credentials from publish profile
         shell: bash
         run: |
           xml='${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}'
-          echo "$xml" > profile.xml
-          KUDU_URL=$(grep -oP '(?<=publishUrl=")[^"]*' profile.xml | head -n1)
-          KUDU_USER=$(grep -oP '(?<=userName=")[^"]*' profile.xml | head -n1)
-          KUDU_PASS=$(grep -oP '(?<=userPWD=")[^"]*' profile.xml | head -n1)
+          KUDU_URL=$(echo "$xml" | sed -n 's/.*publishUrl="\([^"]*\)".*/\1/p' | head -n1)
+          KUDU_USER=$(echo "$xml" | sed -n 's/.*userName="\([^"]*\)".*/\1/p' | head -n1)
+          KUDU_PASS=$(echo "$xml" | sed -n 's/.*userPWD="\([^"]*\)".*/\1/p' | head -n1)
           echo "KUDU_URL=$KUDU_URL" >> $GITHUB_ENV
           echo "KUDU_USER=$KUDU_USER" >> $GITHUB_ENV
           echo "KUDU_PASS=$KUDU_PASS" >> $GITHUB_ENV
-
-      - name: ZipDeploy to Azure
+      - name: ZipDeploy to Kudu
         run: |
           curl -sS -u "${KUDU_USER}:${KUDU_PASS}" \
             -H "Content-Type: application/zip" \
