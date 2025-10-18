@@ -1,4 +1,4 @@
-name: CI/CD Gradle + SonarCloud + Azure (ZipDeploy)
+name: CI/CD Gradle + SonarCloud + Azure
 
 on:
   push:
