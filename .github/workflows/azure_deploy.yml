@@ -8,7 +8,7 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: CP-TAREA-5
-  AZURE_RESOURCE_GROUP: YOUR-RG-NAME
+  AZURE_RESOURCE_GROUP: CP-TAREA-5_group
   JAVA_VERSION: "17"
 
 jobs:
@@ -64,9 +64,9 @@ jobs:
       - name: Login to Azure (OIDC)
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.__clientidsecretname__ }}
-          tenant-id: ${{ secrets.__tenantidsecretname__ }}
-          subscription-id: ${{ secrets.__subscriptionidsecretname__ }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_585EC5769D00426EB5A99B8B526E64FB }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_9262D74DB5234A4D9CBFC75C4E54FF13 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_4E0854E35F104922ADB4ABA8FA90752B }}
 
 
       - name: Ensure App Settings (WEBSITES_PORT=8080, JAVA 17)
