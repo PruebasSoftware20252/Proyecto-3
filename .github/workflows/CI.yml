@@ -1,4 +1,4 @@
-name: CI
+name: CI - Cucumber Ordered Tests
 
 on:
   push:
@@ -10,15 +10,29 @@ on:
 jobs:
   build-test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Set up Temurin JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
           cache: gradle
-      - name: Grant execute permission for gradlew
+
+      - name: Grant execute permission for Gradle wrapper
         run: chmod +x gradlew
-      - name: Build & Test
-        run: ./gradlew --no-daemon clean test
+
+      - name: Clean project
+        run: ./gradlew --no-daemon clean
+
+      - name: Run Cucumber @issue-1
+        run: ./gradlew --no-daemon test "-Dcucumber.filter.tags=@issue-1"
+
+      - name: Run Cucumber @issue-2
+        run: ./gradlew --no-daemon test "-Dcucumber.filter.tags=@issue-2"
+
+      - name: Run Cucumber @issue-3
+        run: ./gradlew --no-daemon test "-Dcucumber.filter.tags=@issue-3"

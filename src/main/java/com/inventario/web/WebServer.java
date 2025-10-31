@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ public class WebServer {
         server.createContext("/", WebServer::handleIndex);
         server.createContext("/add", WebServer::handleAdd);
         server.createContext("/update", WebServer::handleUpdate);
+        server.createContext("/delete", WebServer::handleDelete);
 
         server.setExecutor(null);
         System.out.println("Servidor iniciado en http://localhost:" + port);
@@ -53,8 +55,31 @@ public class WebServer {
           .append("</head><body>")
           .append("<h1>Inventario</h1>");
 
+        String query = ex.getRequestURI().getRawQuery();
+        String message = null;
+        String error = null;
+        if (query != null) {
+            for (String pair : query.split("&")) {
+                if (pair.startsWith("msg=")) {
+                    message = URLDecoder.decode(pair.substring(4), StandardCharsets.UTF_8);
+                } else if (pair.startsWith("error=")) {
+                    error = URLDecoder.decode(pair.substring(6), StandardCharsets.UTF_8);
+                }
+            }
+        }
+
+        if (message != null) {
+            sb.append("<div style='background:#d4edda;color:#155724;padding:.5rem;border:1px solid #c3e6cb;margin-bottom:1rem;'>")
+                    .append(escape(message))
+                    .append("</div>");
+        } else if (error != null) {
+            sb.append("<div style='background:#f8d7da;color:#721c24;padding:.5rem;border:1px solid #f5c6cb;margin-bottom:1rem;'>")
+                    .append(escape(error))
+                    .append("</div>");
+        }
+
         // Tabla
-        sb.append("<table><thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Cantidad</th></tr></thead><tbody>");
+        sb.append("<table><thead><tr><th>SKU</th><th>Nombre</th><th>Precio</th><th>Cantidad</th></thead><tbody>");
         for (Producto p : inv.all()) {
             sb.append("<tr>")
               .append("<td>").append(escape(p.getSku())).append("</td>")
@@ -83,6 +108,14 @@ public class WebServer {
           .append("<button>Actualizar</button>")
           .append("</form>");
 
+
+        // Form Eliminar
+        sb.append("<h2>Eliminar producto</h2>")
+                .append("<form method='post' action='/delete'>")
+                .append("<label>SKU <input name='sku' required></label> ")
+                .append("<button>Eliminar</button>")
+                .append("</form>");
+
         sb.append("</body></html>");
 
         send(ex, 200, sb.toString());
@@ -102,9 +135,9 @@ public class WebServer {
 
             inv.addProducto(sku, nombre, precio, cantidad);
             Storage.saveAll(STORE_FILE, inv);
-            redirect(ex, "/");
+            redirect(ex, "/?msg=Adición%20del%20producto%20exitosa");
         } catch (Exception e) {
-            send(ex, 400, "Error: " + e.getMessage());
+            redirect(ex, "/?error=" + URLEncoder.encode("Error al agregar producto: " + e.getMessage(), StandardCharsets.UTF_8));
         }
     }
 
@@ -118,14 +151,27 @@ public class WebServer {
             String sku = required(form, "sku");
             int cantidad = Integer.parseInt(required(form, "cantidad"));
 
-            // El proyecto ya trae esta operación en Inventario (según los tests).
-            // Si el nombre difiere, ajusta aquí.
             inv.updateCantidad(sku, cantidad);
-
             Storage.saveAll(STORE_FILE, inv);
-            redirect(ex, "/");
+            redirect(ex, "/?msg=Actualización%20de%20producto%20exitosa");
         } catch (Exception e) {
-            send(ex, 400, "Error: " + e.getMessage());
+            redirect(ex, "/?error=" + URLEncoder.encode("Error al actualizar producto: " + e.getMessage(), StandardCharsets.UTF_8));
+        }
+    }
+
+    private static void handleDelete(HttpExchange ex) throws IOException {
+        if (!"POST".equalsIgnoreCase(ex.getRequestMethod())) {
+            send(ex, 405, "Método no permitido");
+            return;
+        }
+        Map<String, String> form = parseForm(ex);
+        try {
+            String sku = required(form, "sku");
+            inv.deleteProducto(sku);
+            Storage.saveAll(STORE_FILE, inv);
+            redirect(ex, "/?msg=Eliminación%20del%20producto%20exitosa");
+        } catch (Exception e) {
+            redirect(ex, "/?error=" + URLEncoder.encode("Error al eliminar producto", StandardCharsets.UTF_8));
         }
     }
 

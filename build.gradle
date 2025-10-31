@@ -1,7 +1,7 @@
 plugins {
     id 'java'
     id 'application'
-    id "com.microsoft.azure.azurewebapp" version "1.10.0" // opcional si despliegas desde Gradle
+    id "com.microsoft.azure.azurewebapp" version "1.10.0"
     id 'jacoco'
     id 'org.sonarqube' version '4.4.1.3373'
 }
@@ -17,6 +17,24 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     // Recomendado para Gradle 8.x en CI (GitHub Actions)
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Cucumber + JUnit Platform (NO uses JUnit4)
+    testImplementation 'io.cucumber:cucumber-java:7.15.0'
+    testImplementation 'io.cucumber:cucumber-junit-platform-engine:7.15.0'
+
+    // Selenium + WebDriverManager
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.23.0'
+    testImplementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
+
+    testImplementation 'org.junit.platform:junit-platform-suite-api:1.10.2'
+
+}
+test {
+    useJUnitPlatform()
+    useJUnitPlatform { excludeTags 'e2e' }
+    useJUnitPlatform()
+    testLogging { showStandardStreams = true }
+
 }
 
 java {
@@ -47,16 +65,12 @@ tasks.jacocoTestReport {
     dependsOn tasks.test
 }
 
-// Si usarás SonarCloud por línea de comando desde el workflow,
-// puedes mantener la config en el workflow.
-// Si prefieres desde Gradle, descomenta y pasa los envs:
-// sonarqube {
-//     properties {
-//         property "sonar.host.url", System.getenv("SONAR_HOST_URL")
-//         property "sonar.organization", System.getenv("SONAR_ORG")
-//         property "sonar.projectKey", System.getenv("SONAR_PROJECT_KEY")
-//     }
-// }
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+test {
+    systemProperty "file.encoding", "UTF-8"
+}
 
 application {
     // Arranque del servidor HTTP embebido
