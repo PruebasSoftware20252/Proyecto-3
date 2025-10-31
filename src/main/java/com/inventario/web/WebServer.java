@@ -135,7 +135,7 @@ public class WebServer {
 
             inv.addProducto(sku, nombre, precio, cantidad);
             Storage.saveAll(STORE_FILE, inv);
-            redirect(ex, "/?msg=Adición%20del%20producto%20exitosa");
+            redirect(ex, "/?msg=Adicion%20del%20producto%20exitosa");
         } catch (Exception e) {
             redirect(ex, "/?error=" + URLEncoder.encode("Error al agregar producto: " + e.getMessage(), StandardCharsets.UTF_8));
         }
@@ -153,7 +153,7 @@ public class WebServer {
 
             inv.updateCantidad(sku, cantidad);
             Storage.saveAll(STORE_FILE, inv);
-            redirect(ex, "/?msg=Actualización%20de%20producto%20exitosa");
+            redirect(ex, "/?msg=Actualizacion%20de%20producto%20exitosa");
         } catch (Exception e) {
             redirect(ex, "/?error=" + URLEncoder.encode("Error al actualizar producto: " + e.getMessage(), StandardCharsets.UTF_8));
         }
@@ -169,7 +169,7 @@ public class WebServer {
             String sku = required(form, "sku");
             inv.deleteProducto(sku);
             Storage.saveAll(STORE_FILE, inv);
-            redirect(ex, "/?msg=Eliminación%20del%20producto%20exitosa");
+            redirect(ex, "/?msg=Eliminacion%20del%20producto%20exitosa");
         } catch (Exception e) {
             redirect(ex, "/?error=" + URLEncoder.encode("Error al eliminar producto", StandardCharsets.UTF_8));
         }

@@ -34,7 +34,7 @@ public class RegistrarSteps {
     }
     @Then("el sistema muestra un mensaje de registro exitoso y guarda el producto")
     public void el_sistema_muestra_un_mensaje_de_registro_exitoso_y_guarda_el_producto() {
-        Assertions.assertEquals(normalizeAsciiLower("Adición del producto exitosa"),normalizeAsciiLower(mainPage.obtenerMensaje()),"Adición del producto exitosa");
+        Assertions.assertEquals(normalizeAsciiLower("Adicion del producto exitosa"),normalizeAsciiLower(mainPage.obtenerMensaje()),"Adición del producto exitosa");
     }
 
     @Then("el sistema muestra un mensaje de error de registro no exitoso y no guarda el producto")
