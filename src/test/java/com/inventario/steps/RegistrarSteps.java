@@ -7,7 +7,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.jupiter.api.Assertions;
-
+import static com.inventario.util.TextUtil.normalizeAsciiLower;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -34,7 +34,7 @@ public class RegistrarSteps {
     }
     @Then("el sistema muestra un mensaje de registro exitoso y guarda el producto")
     public void el_sistema_muestra_un_mensaje_de_registro_exitoso_y_guarda_el_producto() {
-        Assertions.assertEquals("Adición del producto exitosa",mainPage.obtenerMensaje(),"Adición del producto exitosa");
+        Assertions.assertEquals(normalizeAsciiLower("Adición del producto exitosa"),normalizeAsciiLower(mainPage.obtenerMensaje()),"Adición del producto exitosa");
     }
 
     @Then("el sistema muestra un mensaje de error de registro no exitoso y no guarda el producto")

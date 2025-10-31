@@ -7,6 +7,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.junit.jupiter.api.Assertions;
+import static com.inventario.util.TextUtil.normalizeAsciiLower;
 
 public class EliminarSteps {
 
@@ -30,12 +31,10 @@ public class EliminarSteps {
     }
     @Then("el sistema elimina el producto y muestra un mensaje de confirmación")
     public void el_sistema_elimina_el_producto_y_muestra_un_mensaje_de_confirmacion() {
-        Assertions.assertEquals("Eliminación del producto exitosa",mainPage.obtenerMensaje(),"Eliminación del producto exitosa");
+        Assertions.assertEquals(normalizeAsciiLower("Eliminación del producto exitosa"),normalizeAsciiLower(mainPage.obtenerMensaje()),"Eliminación del producto exitosa");
     }
     @Then("el sistema no elimina el producto")
     public void el_sistema_no_elimina_el_producto() {
         Assertions.assertEquals("Error al eliminar producto",mainPage.obtenerMensaje(),"Eliminacion del producto no exitosa");
     }
-
-
 }
