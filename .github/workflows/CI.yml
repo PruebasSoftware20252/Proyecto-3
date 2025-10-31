@@ -27,5 +27,8 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Clean project
+        run: ./gradlew --no-daemon clean
+        
       - name: Build & Test (Cucumber + JUnit)
         run: ./gradlew --no-daemon clean test
