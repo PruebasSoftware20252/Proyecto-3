@@ -2,6 +2,10 @@ package com.inventario.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class MainPage {
     private WebDriver driver;
@@ -22,6 +26,12 @@ public class MainPage {
     private By DeleteBtn = By.xpath("//button[text()='Eliminar']");
 
     private By AlertTxt = By.xpath("//div");
+
+    public void abrirHome() {
+        driver.get("http://localhost:8080/");
+        new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.visibilityOfElementLocated(By.tagName("h1")));
+    }
 
     public MainPage(WebDriver driver) {
         this.driver = driver;

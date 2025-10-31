@@ -50,6 +50,7 @@ tasks.withType(Test).configureEach {
         showStandardStreams = true
     }
     finalizedBy 'jacocoTestReport'
+    systemProperty 'file.encoding', 'UTF-8'
 }
 
 jacoco {
@@ -65,9 +66,6 @@ tasks.jacocoTestReport {
     dependsOn tasks.test
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
 test {
     systemProperty "file.encoding", "UTF-8"
 }
@@ -87,4 +85,8 @@ sonarqube {
     properties {
         property "sonar.gradle.skipCompile", "true"
     }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
 }

@@ -20,6 +20,7 @@ public class RegistrarSteps {
     @Before(order = 1)
     public void initPage() {
         mainPage = new MainPage(Hooks.driver);
+        mainPage.abrirHome();
     }
 
     @Given("que el usuario esta en el formulario de registro")

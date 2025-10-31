@@ -29,6 +29,7 @@ public class ActualizarSteps {
     @Before(order = 1)
     public void initPage() {
         mainPage = new MainPage(Hooks.driver);
+        mainPage.abrirHome();
     }
 
     @Given("que el usuario visualiza el inventario de productos")
