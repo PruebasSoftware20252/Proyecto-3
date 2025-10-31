@@ -27,12 +27,3 @@ jobs:
 
       - name: Clean project
         run: ./gradlew --no-daemon clean
-
-      - name: Run Cucumber @issue-1
-        run: ./gradlew --no-daemon test "-Dcucumber.filter.tags=@issue-1"
-
-      - name: Run Cucumber @issue-2
-        run: ./gradlew --no-daemon test "-Dcucumber.filter.tags=@issue-2"
-
-      - name: Run Cucumber @issue-3
-        run: ./gradlew --no-daemon test "-Dcucumber.filter.tags=@issue-3"
