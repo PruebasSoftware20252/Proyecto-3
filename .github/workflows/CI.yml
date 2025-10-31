@@ -32,3 +32,12 @@ jobs:
         
       - name: Build & Test (Cucumber + JUnit)
         run: ./gradlew --no-daemon clean test
+
+      - name: Upload JUnit test report
+          if: always()
+          uses: actions/upload-artifact@v4
+          with:
+            name: test-report
+            path: |
+              build/reports/tests/test/
+              build/test-results/test/

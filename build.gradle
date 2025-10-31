@@ -34,6 +34,12 @@ test {
     useJUnitPlatform { excludeTags 'e2e' }
     useJUnitPlatform()
     testLogging { showStandardStreams = true }
+    systemProperty "file.encoding", "UTF-8"
+    useJUnitPlatform()
+    reports {
+        junitXml.required.set(true)
+        html.required.set(true)
+    }
 
 }
 
@@ -65,10 +71,6 @@ tasks.jacocoTestReport {
         csv.required = false
     }
     dependsOn tasks.test
-}
-
-test {
-    systemProperty "file.encoding", "UTF-8"
 }
 
 application {
