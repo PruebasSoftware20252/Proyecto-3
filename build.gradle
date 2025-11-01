@@ -42,6 +42,10 @@ test {
         junitXml.required.set(true)
         html.required.set(true)
     }
+    testlogger {
+    theme 'mocha'
+    showStandardStreams true
+    }
 
 }
 
@@ -96,7 +100,4 @@ tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
 
-testlogger {
-    theme 'mocha'
-    showStandardStreams true
-}
+
