@@ -31,7 +31,7 @@ public class EliminarSteps {
     }
     @Then("el sistema elimina el producto y muestra un mensaje de confirmación")
     public void el_sistema_elimina_el_producto_y_muestra_un_mensaje_de_confirmacion() {
-        Assertions.assertEquals(normalizeAsciiLower("Eliminacion del producto exitosa"),normalizeAsciiLower(mainPage.obtenerMensaje()),"Eliminación del producto exitosa");
+        Assertions.assertEquals(normalizeAsciiLower("Eliminaciòn del producto exitosa"),normalizeAsciiLower(mainPage.obtenerMensaje()),"Eliminación del producto exitosa");
     }
     @Then("el sistema no elimina el producto")
     public void el_sistema_no_elimina_el_producto() {
