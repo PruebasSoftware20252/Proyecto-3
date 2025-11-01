@@ -4,6 +4,8 @@ plugins {
     id "com.microsoft.azure.azurewebapp" version "1.10.0"
     id 'jacoco'
     id 'org.sonarqube' version '4.4.1.3373'
+    id 'com.adarshr.test-logger' version '3.2.0'
+
 }
 
 group = 'com.inventario'
@@ -92,4 +94,9 @@ sonarqube {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
+}
+
+testlogger {
+    theme 'mocha'
+    showStandardStreams true
 }
